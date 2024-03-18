@@ -4,6 +4,7 @@ from glob import glob
 
 NUM_CLASSES = 5
 K = 2
+HIST_SIZE = 64 
 
 # Calcula o histograma de cada imagem já os classificando
 # e retorna uma lista de histogramas e uma lista de classes
@@ -11,10 +12,11 @@ def calc_histogram(images: list) -> tuple[list, list]:
     hists = []
     classes = []
     for idx, img_path in enumerate(images):
-        img = cv2.imread(img_path, cv2.COLOR_BGR2GRAY)
-        hist = cv2.calcHist([img], [0], None, [256], [0, 256])
-        classes.append(idx // NUM_CLASSES)
+        img = cv2.imread(img_path, cv2.COLOR_BGR2RGB)
+        hist = [cv2.calcHist([img], [i], None, [HIST_SIZE], [0, 256]) for i in range(3)]
+        hist = [cv2.normalize(hist, None) for hist in hist]
         hists.append(hist)
+        classes.append(idx // NUM_CLASSES)
 
     return hists, classes
 
@@ -64,7 +66,9 @@ def make_conf_mtx_by_method(hists: list, classes: list, method: int):
         scores = []
         for j in range(len(hists)):
             if i != j:
-                scores.append(similarity_function(hists[i], hists[j], metric))
+                scs = [similarity_function(hists[i][k], hists[j][k], metric) for k in range(3)]
+                average = sum(scs) / len(scs)
+                scores.append(average)
 
         label = classify(scores, classes, bigger)
         confusion_matrix[i // NUM_CLASSES][label] += 1
