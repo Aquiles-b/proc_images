@@ -1,49 +1,88 @@
 import sys
 import cv2
-import json
-import os
 from glob import glob
 
+NUM_CLASSES = 5
+K = 2
 
+# Calcula o histograma de cada imagem já os classificando
+# e retorna uma lista de histogramas e uma lista de classes
 def calc_histogram(images: list) -> tuple[list, list]:
     hists = []
     classes = []
-    num_classes = 5
     for idx, img_path in enumerate(images):
-        img = cv2.imread(img_path)
+        img = cv2.imread(img_path, cv2.COLOR_BGR2GRAY)
         hist = cv2.calcHist([img], [0], None, [256], [0, 256])
-        # hist = hist.flatten().tolist()
-        classes.append(idx // num_classes)
+        classes.append(idx // NUM_CLASSES)
         hists.append(hist)
 
     return hists, classes
 
-def load_hists_json(json_name: str) -> tuple[list, list]:
-    with open(json_name, 'r') as f:
-        hists_json = json.load(f)
+def choose_method(method: int):
+    """
+    Escolhe o método de comparação de histogramas
+    Retorna uma tupla que contém:
+        Função de comparação,
+        Métrica,
+        Se a métrica é maior
+    """
+    match method:
+        case 1:
+            return cv2.norm, cv2.NORM_L2, False
+        case 2:
+            return cv2.compareHist, cv2.HISTCMP_CORREL, True
+        case 3:
+            return cv2.compareHist, cv2.HISTCMP_CHISQR, False
+        case 4:
+            return cv2.compareHist, cv2.HISTCMP_INTERSECT, True
+        case 5:
+            return cv2.compareHist, cv2.HISTCMP_BHATTACHARYYA, False
+        case _:
+            print('Método inválido')
+            exit(1)
 
-    classes = hists_json[0]
-    hists = hists_json[1:]
+# Classifica a classe de um histograma com base na classe dos K vizinhos
+def classify(scores: list, classes: list, bigger: bool) -> int:
+    classes = classes.copy()
+    scores, classes = zip(*sorted(zip(scores, classes), reverse=bigger))
 
-    return hists, classes
+    neighbors = classes[:K]
+    counts = [0] * NUM_CLASSES
+    for neighbor in neighbors:
+        counts[neighbor] += 1
 
-def save_hists_json(json_name: str, hists: list, classes: list) -> None:
-    with open(json_name, 'w') as f:
-        json.dump([classes] + hists, f)
+    return counts.index(max(counts))
 
-def classify_by_knn(method, data: list, base: list[list]) -> None:
-    pass
+# Cria a matriz de confusão com base nos histogramas e classes
+def make_conf_mtx_by_method(hists: list, classes: list, method: int):
+    confusion_matrix = [[0] * NUM_CLASSES for _ in range(NUM_CLASSES)]
 
-if __name__ == "__main__":
-    method = sys.argv[1]
+    similarity_function, metric, bigger = choose_method(method)
+
+    # Pega os scores com base na função de similaridade escolhida
+    for i in range(len(hists)):
+        scores = []
+        for j in range(len(hists)):
+            if i != j:
+                scores.append(similarity_function(hists[i], hists[j], metric))
+
+        label = classify(scores, classes, bigger)
+        confusion_matrix[i // NUM_CLASSES][label] += 1
+
+    return confusion_matrix
+
+def main() -> None:
+    method = int(sys.argv[1])
     images_path = sys.argv[2]
-    hist_json_path = f"{images_path}.json"
     images = sorted(glob(f"{images_path}/*"))
 
-    if os.path.exists(hist_json_path):
-        hists = load_hists_json(hist_json_path)
-    else:
-        hists, classes = calc_histogram(images)
+    hists, classes = calc_histogram(images)
+    confusion_matrix = make_conf_mtx_by_method(hists, classes, method)
+    accuracy = sum([confusion_matrix[i][i] for i in range(NUM_CLASSES)]) / len(images)
 
-    c = cv2.compareHist(hists[0], hists[1], cv2.HISTCMP_CORREL)
-    print(c)
+    print('Accuracy:', accuracy)
+    for row in confusion_matrix:
+        print(row)
+
+if __name__ == "__main__":
+    main()
