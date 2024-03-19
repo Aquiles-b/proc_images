@@ -13,7 +13,7 @@ Sobre os parâmetros:
     Os parâmetros foram escolhidos na tentativa e erro, com o objetivo de maximizar a acurácia
     em algum dos métodos.
 
-    - O parâmetro K ficou em 2 (quando há empate, o maior score é escolhido).
+    - O parâmetro K ficou em 2 (quando há empate, a menor classe é escolhida).
     - A quantidade de intervalos do histograma foi 64, sendo o parâmetro que 
     mais influenciou na acurácia.
 

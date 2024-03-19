@@ -16,7 +16,7 @@ def calc_histogram(images: list) -> tuple[list, list]:
     for idx, img_path in enumerate(images):
         img = cv2.imread(img_path, cv2.COLOR_BGR2RGB)
         hist = [cv2.calcHist([img], [i], None, [HIST_SIZE], [0, 256]) for i in range(3)]
-        hist = [cv2.normalize(hist, None) for hist in hist]
+        hist = [cv2.normalize(h, h, alpha=1, beta=0, norm_type=cv2.NORM_L2) for h in hist]
         hists.append(hist)
         classes.append(idx // NUM_CLASSES)
 
