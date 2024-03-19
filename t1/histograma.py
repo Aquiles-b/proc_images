@@ -3,10 +3,11 @@
 import sys
 import cv2
 from glob import glob
+import numpy as np
 
 NUM_CLASSES = 5
-K = 2
-HIST_SIZE = 64 
+K = 3
+HIST_SIZE = 160
 
 # Calcula o histograma de cada imagem já os classificando
 # e retorna uma lista de histogramas e uma lista de classes
@@ -15,7 +16,11 @@ def calc_histogram(images: list) -> tuple[list, list]:
     classes = []
     for idx, img_path in enumerate(images):
         img = cv2.imread(img_path, cv2.COLOR_BGR2RGB)
-        hist = [cv2.calcHist([img], [i], None, [HIST_SIZE], [0, 256]) for i in range(3)]
+
+        mask = np.zeros(img.shape[:2], dtype=np.uint8)
+        mask[:img.shape[0]//2, :] = 255
+
+        hist = [cv2.calcHist([img], [i], mask, [HIST_SIZE], [1, 254]) for i in range(3)]
         hist = [cv2.normalize(h, h, alpha=1, beta=0, norm_type=cv2.NORM_L2) for h in hist]
         hists.append(hist)
         classes.append(idx // NUM_CLASSES)
