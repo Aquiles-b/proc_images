@@ -30,20 +30,19 @@ def choose_method(method: int):
         Métrica,
         Se a métrica é maior
     """
-    match method:
-        case 1:
-            return cv2.norm, cv2.NORM_L2, False
-        case 2:
-            return cv2.compareHist, cv2.HISTCMP_CORREL, True
-        case 3:
-            return cv2.compareHist, cv2.HISTCMP_CHISQR, False
-        case 4:
-            return cv2.compareHist, cv2.HISTCMP_INTERSECT, True
-        case 5:
-            return cv2.compareHist, cv2.HISTCMP_BHATTACHARYYA, False
-        case _:
-            print('Método inválido')
-            exit(1)
+    if method == 1:
+        return cv2.norm, cv2.NORM_L2, False
+    elif method == 2:
+        return cv2.compareHist, cv2.HISTCMP_CORREL, True
+    elif method == 3:
+        return cv2.compareHist, cv2.HISTCMP_CHISQR, False
+    elif method == 4:
+        return cv2.compareHist, cv2.HISTCMP_INTERSECT, True
+    elif method == 5:
+        return cv2.compareHist, cv2.HISTCMP_BHATTACHARYYA, False
+    else:
+        print('Método inválido')
+        exit(1)
 
 # Classifica a classe de um histograma com base na classe dos K vizinhos
 def classify(scores: list, classes: list, bigger: bool) -> int:
