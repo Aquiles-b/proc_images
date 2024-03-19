@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 import sys
 import cv2
 from glob import glob
@@ -67,7 +69,7 @@ def make_conf_mtx_by_method(hists: list, classes: list, method: int):
         for j in range(len(hists)):
             if i != j:
                 scs = [similarity_function(hists[i][k], hists[j][k], metric) for k in range(3)]
-                average = sum(scs) / len(scs)
+                average = sum(scs) / 3
                 scores.append(average)
 
         label = classify(scores, classes, bigger)

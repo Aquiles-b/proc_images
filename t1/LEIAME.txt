@@ -1,3 +1,0 @@
-
-Linha de bash que ajudou nos testes: 
-    for i in {1..5}; do; python3 histograma.py "$i" images | grep "Accuracy"; done
