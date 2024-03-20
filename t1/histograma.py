@@ -8,6 +8,7 @@ import numpy as np
 NUM_CLASSES = 5
 K = 3
 HIST_SIZE = 160
+HIST_RANGE = [1, 254]
 
 # Calcula o histograma de cada imagem já os classificando
 # e retorna uma lista de histogramas e uma lista de classes
@@ -20,7 +21,7 @@ def calc_histogram(images: list) -> tuple[list, list]:
         mask = np.zeros(img.shape[:2], dtype=np.uint8)
         mask[:img.shape[0]//2, :] = 255
 
-        hist = [cv2.calcHist([img], [i], mask, [HIST_SIZE], [1, 254]) for i in range(3)]
+        hist = [cv2.calcHist([img], [i], mask, [HIST_SIZE], HIST_RANGE) for i in range(3)]
         hist = [cv2.normalize(h, h, alpha=1, beta=0, norm_type=cv2.NORM_L2) for h in hist]
         hists.append(hist)
         classes.append(idx // NUM_CLASSES)
