@@ -10,23 +10,19 @@ def main() -> None:
     img = cv2.imread(img_in_name)
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
-    mask = cv2.inRange(hsv, (0, 0, 0), (75, 255, 255))
+    low = np.array([0 ,0 ,0])
+    high = np.array([80, 255, 255])
 
-    imask = mask>0
-    orange=np.zeros_like(img,np.uint8)
-    orange[imask]=img[imask]
-    yellow=img.copy()
-    hsv[...,0] = hsv[...,0]+20
-    yellow[imask]=cv2.cvtColor(hsv,cv2.COLOR_HSV2BGR)[imask]
-    yellow=np.clip(yellow,0,255)
+    mask = cv2.inRange(hsv, low, high)
+    mask = cv2.bitwise_not(mask)
 
-    cv2.imshow("img",yellow)
-    cv2.waitKey()
-    nofish=img.copy()
-    nofish=cv2.bitwise_and(nofish,nofish,mask=(np.bitwise_not(imask)).astype(np.uint8))
-    cv2.imshow("img",nofish)
-    cv2.waitKey()
+    img_seg = img.copy()
+    img_seg = cv2.bitwise_and(img_seg, img_seg, mask=mask)
 
+    cv2.imshow("original", img)
+    cv2.imshow("mask", img_seg)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
 
 if __name__ == "__main__":
