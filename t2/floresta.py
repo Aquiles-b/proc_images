@@ -42,11 +42,7 @@ def main() -> None:
     img_seg = img.copy()
     img_seg = cv2.bitwise_and(img_seg, img_seg, mask=mask_forest)
 
-    cv2.imshow("original", img)
-    cv2.imshow("mask", img_seg)
-    cv2.moveWindow("original", 0, 0)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    cv2.imwrite(img_out_name, img_seg)
 
 
 if __name__ == "__main__":
