@@ -7,10 +7,12 @@ from matplotlib import pyplot as plt
 
 # Printa uma tabela com os resultados dos filtros no terminal
 def draw_table(filters: dict, noise_levels: list, psnr_ceil: float) -> None:
+    print('PSNR de cada filtro para diferentes níveis de ruído:\n')
     print(f'{"Noise level":<15}{"Média":<15}{"Gaussiano":<15}{"Mediana":<15}{"Stacking":<15}{"NLM":<15}{"Bilateral":<15}')
     for i, nl in enumerate(noise_levels):
         print(f'{nl:<15}{filters["cv_blur"][i]:<15.2f}{filters["cv_ga_blur"][i]:<15.2f}{filters["cv_me_blur"][i]:<15.2f}{filters["stacking"][i]:<15.2f}{filters["cv_nlm"][i]:<15.2f}{filters["cv_bf"][i]:<15.2f}')
 
+    print(f'\nPSNR máximo: {psnr_ceil:.2f}')
     print('\nAverage values:')
     print(f'Média: {np.mean(filters["cv_blur"]):.2f}')
     print(f'Gaussiano: {np.mean(filters["cv_ga_blur"]):.2f}')
@@ -18,6 +20,7 @@ def draw_table(filters: dict, noise_levels: list, psnr_ceil: float) -> None:
     print(f'Stacking: {np.mean(filters["stacking"]):.2f}')
     print(f'NLM: {np.mean(filters["cv_nlm"]):.2f}')
     print(f'Bilateral: {np.mean(filters["cv_bf"]):.2f}')
+    print('-' * 100)
 
 # Retorna o stop distance para o método de stacking com base em diferentes 
 # níveis de ruído em @noise_levels sobre a imagem @img_original.
@@ -47,10 +50,9 @@ def catch_sd_stacking(img_original, noise_levels: list, save_plot: bool) -> floa
                 psnr_stb[0].append(sd_values[i])
                 psnr_stb[1].append(psnrs[i])
 
-    axs[0].scatter(psnr_stb[0], psnr_stb[1], color='black', 
-                   marker='o', label='PSNR stabilizing')
-
     if save_plot:
+        axs[0].scatter(psnr_stb[0], psnr_stb[1], color='black', 
+                       marker='o', label='PSNR stabilizing')
         axs[0].set_title('PSNR x Stop distance')
         axs[0].set_xlabel('Stop distance')
         axs[0].set_ylabel('PSNR')
@@ -65,7 +67,7 @@ def catch_sd_stacking(img_original, noise_levels: list, save_plot: bool) -> floa
         plt.tight_layout()
         plt.savefig(f'stacking_test.png')
 
-    return np.mean(psnr_stb[0])
+    return float(np.mean(psnr_stb[0]))
 
 # Faz o stacking de imagens ruidosas usando a média dos pixels até que a
 # diferença de PSNR entre duas iterações seja menor que @stop_distance 
@@ -112,14 +114,13 @@ def main() -> None:
     noise_levels = [0.01, 0.02, 0.05, 0.07, 0.1]
 
     for img_path in sys.argv[1:]:
-        img = cv2.imread(img_path)
-        if img is None:
+        img_original = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
+        if img_original is None:
             print(f'Could not open {img_path}')
             continue
 
-        img_original = cv2.imread(img_path)
         psnr_ceil = cv2.PSNR(img_original, img_original)
-        # 0.047
+        # 0.047 (função bem demorada, então já deixei o valor fixo)
         # sd_stacking = catch_sd_stacking(img_original, noise_levels, True)
         sd_stacking = 0.047
         filters = test_filters(img_original, noise_levels, 3, sd_stacking)
