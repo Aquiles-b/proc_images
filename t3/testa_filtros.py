@@ -26,7 +26,7 @@ def draw_table(filters: dict, noise_levels: list, psnr_ceil: float) -> None:
 # Retorna o stop distance para o método de stacking com base em diferentes 
 # níveis de ruído em @noise_levels sobre a imagem @img_original.
 # Salva um gráfico com os resultados se @save_plot for True.
-def catch_sd_stacking(img_original, noise_levels: list, save_plot: bool) -> float:
+def catch_sd_stacking_mean(img_original, noise_levels: list, save_plot: bool) -> float:
     sd_values = np.arange(0.1, 0.005, -0.005)
     _, axs = plt.subplots(1, 2, figsize=(12, 6))  # 1 linha, 2 colunas
 
@@ -36,7 +36,7 @@ def catch_sd_stacking(img_original, noise_levels: list, save_plot: bool) -> floa
         psnrs = []
         qnt_imgs = []
         for sd in sd_values:
-            psnr, qnt = stacking_filter(img_original, nl, sd)
+            psnr, qnt = stacking_filter_mean(img_original, nl, sd)
             psnrs.append(psnr)
             qnt_imgs.append(qnt)
 
@@ -73,7 +73,7 @@ def catch_sd_stacking(img_original, noise_levels: list, save_plot: bool) -> floa
 # Faz o stacking de imagens ruidosas usando a média dos pixels até que a
 # diferença de PSNR entre duas iterações seja menor que @stop_distance 
 # Retorna o PSNR final e a quantidade de imagens usadas.
-def stacking_filter(img_original, noise_level: float, stop_distance: float) -> tuple[float, int]:
+def stacking_filter_mean(img_original, noise_level: float, stop_distance: float) -> tuple[float, int]:
     previous_psnr = 0
     psnr = 0
     img_stack = []
@@ -108,7 +108,7 @@ def test_filters(img_original, noise_levels: list, ks: int, sd_stacking: float) 
         psnr_cv_me_blur = cv2.PSNR(img_original, cv2.medianBlur(img_noised, ks))
         psnr_nlm = cv2.PSNR(img_original, cv2.fastNlMeansDenoising(img_noised, None, h=21))
         psnr_bf = cv2.PSNR(img_original, cv2.bilateralFilter(img_noised, ks, 10, 10))
-        filters['stacking_mean'].append(stacking_filter(img_original, nl, sd_stacking)[0])
+        filters['stacking_mean'].append(stacking_filter_mean(img_original, nl, sd_stacking)[0])
         filters['stacking_median'].append(stacking_filter_median(img_original, nl))
         filters['cv_blur'].append(psnr_cv_blur)
         filters['cv_ga_blur'].append(psnr_cv_ga_blur)
