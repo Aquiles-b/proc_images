@@ -183,8 +183,11 @@ def analyze_form_1(imgs: list) -> list:
 
     return results
 
+def tag_answers_img(form_path: str, answers: list, form_type: int, out_dir: str) -> None:
+    pass
+
 # Retorna uma lista com os dados dos formulários.
-def catch_forms_data(forms: list) -> list:
+def catch_forms_data(forms: list, tag_out_dir: str) -> list:
     results = [[0]*4 for _ in range(6)]
     results.append([0]*2)
     results.append([0]*2)
@@ -205,7 +208,28 @@ def catch_forms_data(forms: list) -> list:
         for idx, i in enumerate(r):
             results[idx][i] += 1
 
+        if tag_out_dir != "":
+            tag_answers_img(form, r, form_type,tag_out_dir)
+
     return results
+
+def save_results(results: list, n: int) -> None:
+    r0 = np.array(results[:6])
+    r1 = np.array(results[6:9])
+    r2 = np.array(results[9])
+
+    r0 = ((r0 / n)*100).astype(int)
+    r1 = ((r1 / n)*100).astype(int)
+    media = (np.sum(r2 * np.arange(10)) / n) * 10
+    media = int(media)
+
+    linhas = ["".join([f"{i} " for i in l]) + "\n" for l in r0]
+    linhas += ["".join([f"{i} " for i in l]) + "\n" for l in r1]
+    tw = "".join(linhas)
+    tw += f"{media}"
+
+    with open("results.txt", "w") as f:
+        f.write(tw)
 
 def main() -> None:
     argc = len(sys.argv)
@@ -219,9 +243,17 @@ def main() -> None:
         sys.exit(1)
 
     forms = sorted(glob(f"{forms_dir}/*.png"))
+    if len(forms) == 0:
+        print(f"Error: {forms_dir} does not contain any forms.")
+        sys.exit(1)
 
-    results = catch_forms_data(forms)
-    print(results)
+    tag_out_dir = ""
+    if argc == 2:
+        tag_out_dir = sys.argv[2]
+        os.makedirs(tag_out_dir, exist_ok=True)
+
+    results = catch_forms_data(forms, tag_out_dir)
+    save_results(results, len(forms))
 
 
 if __name__ == '__main__':
