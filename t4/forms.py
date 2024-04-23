@@ -233,7 +233,7 @@ def save_results(results: list, n: int) -> None:
 
 def main() -> None:
     argc = len(sys.argv)
-    if argc == 1:
+    if argc < 2 or argc > 3:
         print("Usage: python3 forms.py <forms-dir> <forms-out-dir>")
         sys.exit(1)
 
@@ -248,7 +248,7 @@ def main() -> None:
         sys.exit(1)
 
     tag_out_dir = ""
-    if argc == 2:
+    if argc == 3:
         tag_out_dir = sys.argv[2]
         os.makedirs(tag_out_dir, exist_ok=True)
 
