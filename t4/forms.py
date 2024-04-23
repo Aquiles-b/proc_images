@@ -3,17 +3,36 @@ from glob import glob
 import cv2
 import os
 import numpy as np
-from matplotlib import pyplot as plt
+import matplotlib.pyplot as plt
+
 
 # Retorna um dicionário com os dados dos formulários.
 def catch_forms_data(forms: list) -> list:
     for form in forms[:1]:
-        pass
+        img = cv2.imread(form, cv2.IMREAD_GRAYSCALE)
+        img = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY)[1]
+        form_type = catch_form_type(img)
+        regions = catch_regions(img)
+
+        if form_type == 0:
+            print(f"Form type: {form_type}, {form}")
+            analyze_form_0(regions)
+
+# Retorna o tipo do formulário.
+def catch_form_type(form: np.ndarray) -> int:
+    # (912, 17, 606, 156)
+    img_guess_f = form[16:175, 900:1520]
+    bp = np.sum(img_guess_f == 0)
+
+    if bp > 15000:
+        return 0
+    return 1
 
 def catch_regions(form: np.ndarray):
-    img = cv2.imread(form, cv2.IMREAD_GRAYSCALE)
-    img = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY)[1]
+    kernel = cv2.getStructuringElement(cv2.MORPH_CROSS, (3, 3))
+    img = cv2.dilate(form, kernel, iterations=1)
     q_w = 850
+    q_h = 200
     # Inicio de cada questão
     q1_i = 670
     q2_i = 840
@@ -26,27 +45,29 @@ def catch_regions(form: np.ndarray):
     q8_i = 1970
     # Inicio da questão de nota
     rating_i = 2270
-    # Recortando as regiões
-    img_q1 = img[q1_i:q1_i+200, q_w:]
-    img_q2 = img[q2_i:q2_i+200, q_w:]
-    img_q3 = img[q3_i:q3_i+200, q_w:]
-    img_q4 = img[q4_i:q4_i+200, q_w:]
-    img_q5 = img[q5_i:q5_i+200, q_w:]
-    img_q6 = img[q6_i:q6_i+200, q_w:]
+    # Recortando as regiões e guardando em uma lista
+    regions = []
+    regions.append(img[q1_i:q1_i+q_h, q_w:])
+    regions.append(img[q2_i:q2_i+q_h, q_w:])
+    regions.append(img[q3_i:q3_i+q_h, q_w:])
+    regions.append(img[q4_i:q4_i+q_h, q_w:])
+    regions.append(img[q5_i:q5_i+q_h, q_w:])
+    regions.append(img[q6_i:q6_i+q_h, q_w:])
 
-    img_q7 = img[q7_i:q7_i+200, 0:1600]
-    img_q8 = img[q8_i:q8_i+300]
-    img_rating = img[rating_i:rating_i+200, 700:]
+    regions.append(img[q7_i:q7_i+q_h, 0:1600])
+    regions.append(img[q8_i:q8_i+300])
+    regions.append(img[rating_i:rating_i+q_h, 700:])
 
-    print(f'\n{form}:')
-    analyze_question_type_1(img_q1)
-    analyze_question_type_1(img_q2)
-    analyze_question_type_1(img_q3)
-    analyze_question_type_1(img_q4)
-    analyze_question_type_1(img_q5)
-    analyze_question_type_1(img_q6)
+    return regions
 
-def analyze_question_type_1(img: np.ndarray) -> int:
+# Faz analise do formulário do tipo 0.
+def analyze_form_0(imgs: list):
+    results = []
+    for img in imgs[:5]:
+        results.append(analyze_question_type_0(img))
+
+
+def analyze_question_type_0(img: np.ndarray) -> int:
     offset = 445
     img_exc = img[:, 0:offset]
     img_good = img[:, offset:offset*2]
@@ -59,8 +80,19 @@ def analyze_question_type_1(img: np.ndarray) -> int:
     fair_black = np.sum(img_fair == 0)
     poor_black = np.sum(img_poor == 0)
 
-    print(exc_black, good_black, fair_black, poor_black)
-
+    if exc_black > 2000:
+        return 0
+    elif good_black > 1300:
+        return 1
+    elif fair_black > 1000:
+        return 2
+    elif poor_black > 1000:
+        return 3
+    else:
+        print("Não reconhecido")
+        plt.imshow(img, cmap='gray')
+        plt.show()
+        return -1
 
 def main() -> None:
     argc = len(sys.argv)
@@ -75,7 +107,7 @@ def main() -> None:
 
     forms = sorted(glob(f"{forms_dir}/*.png"))
     # catch_forms_data(forms)
-    for form in forms[:3]:
+    for form in forms:
         catch_regions(form)
 
 if __name__ == '__main__':
