@@ -184,7 +184,8 @@ def analyze_form_1(imgs: list) -> list:
     return results
 
 def tag_answers_img(form_path: str, answers: list, form_type: int, out_dir: str) -> None:
-    pass
+    fname = form_path.split('/')[-1]
+    fname = f"{fname[0:fname.find('.')]}.out{fname[fname.find('.'):]}"
 
 # Retorna uma lista com os dados dos formulários.
 def catch_forms_data(forms: list, tag_out_dir: str) -> list:
