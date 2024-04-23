@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 # Retorna um dicionário com os dados dos formulários.
 def catch_forms_data(forms: list) -> list:
-    for form in forms[:1]:
+    for form in forms:
         img = cv2.imread(form, cv2.IMREAD_GRAYSCALE)
         img = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY)[1]
         form_type = catch_form_type(img)
@@ -106,9 +106,9 @@ def main() -> None:
         sys.exit(1)
 
     forms = sorted(glob(f"{forms_dir}/*.png"))
-    # catch_forms_data(forms)
-    for form in forms:
-        catch_regions(form)
+
+    catch_forms_data(forms)
+
 
 if __name__ == '__main__':
     main()
