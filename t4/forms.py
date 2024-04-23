@@ -6,23 +6,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-# Retorna um dicionário com os dados dos formulários.
-def catch_forms_data(forms: list) -> list:
-    for form in forms:
-        img = cv2.imread(form, cv2.IMREAD_GRAYSCALE)
-        img = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY)[1]
-        form_type = catch_form_type(img)
-        regions = catch_regions(img)
-
-        if form_type == 0:
-            print(f"Form type: {form_type}, {form}")
-            analyze_form_0(regions)
-
 # Retorna o tipo do formulário.
 def catch_form_type(form: np.ndarray) -> int:
     # (912, 17, 606, 156)
     img_guess_f = form[16:175, 900:1520]
-    bp = np.sum(img_guess_f == 0)
+    bp = np.sum(img_guess_f <= 127)
 
     if bp > 15000:
         return 0
@@ -42,7 +30,7 @@ def catch_regions(form: np.ndarray):
     q6_i = 1580
     # Inicio das questões de sim ou não
     q7_i = 1770
-    q8_i = 1970
+    q8_9_i = 2100
     # Inicio da questão de nota
     rating_i = 2270
     # Recortando as regiões e guardando em uma lista
@@ -54,20 +42,15 @@ def catch_regions(form: np.ndarray):
     regions.append(img[q5_i:q5_i+q_h, q_w:])
     regions.append(img[q6_i:q6_i+q_h, q_w:])
 
-    regions.append(img[q7_i:q7_i+q_h, 0:1600])
-    regions.append(img[q8_i:q8_i+300])
-    regions.append(img[rating_i:rating_i+q_h, 700:])
+    regions.append(img[q7_i:q7_i+q_h, q_w:1500])
+    regions.append(img[q8_9_i:q8_9_i+q_h, 0:750])
+    regions.append(img[q8_9_i:q8_9_i+q_h, 1300:2050])
+    regions.append(img[rating_i:rating_i+q_h, 900:2380])
 
     return regions
 
-# Faz analise do formulário do tipo 0.
-def analyze_form_0(imgs: list):
-    results = []
-    for img in imgs[:5]:
-        results.append(analyze_question_type_0(img))
-
-
-def analyze_question_type_0(img: np.ndarray) -> int:
+# Retorna a quantidade de pixels pretos de cada região da questão.
+def count_question_black_pixels(img: np.ndarray) -> tuple[int, int, int, int]:
     offset = 445
     img_exc = img[:, 0:offset]
     img_good = img[:, offset:offset*2]
@@ -75,24 +58,154 @@ def analyze_question_type_0(img: np.ndarray) -> int:
     img_poor = img[:, offset*3:]
 
     # count the number of black pixels
-    exc_black = np.sum(img_exc == 0)
-    good_black = np.sum(img_good == 0)
-    fair_black = np.sum(img_fair == 0)
-    poor_black = np.sum(img_poor == 0)
+    exc_black = int(np.sum(img_exc <= 127))
+    good_black = int(np.sum(img_good <= 127))
+    fair_black = int(np.sum(img_fair <= 127))
+    poor_black = int(np.sum(img_poor <= 127))
 
-    if exc_black > 2000:
+    return exc_black, good_black, fair_black, poor_black
+
+# Retorna o indice da escolha feita na questão passada do formulário tipo 1.
+def analyze_question_type_10(img: np.ndarray) -> int:
+    exc_black, good_black, fair_black, poor_black = count_question_black_pixels(img)
+
+    if exc_black >= 3300:
         return 0
-    elif good_black > 1300:
+    elif good_black >= 2200:
         return 1
-    elif fair_black > 1000:
+    elif fair_black >= 2230:
         return 2
-    elif poor_black > 1000:
+    elif poor_black >= 1500:
         return 3
     else:
-        print("Não reconhecido")
-        plt.imshow(img, cmap='gray')
-        plt.show()
-        return -1
+        dis = []
+        dis.append(abs(3300 - exc_black))
+        dis.append(abs(2200 - good_black))
+        dis.append(abs(2230 - fair_black))
+        dis.append(abs(1500 - poor_black))
+
+        return dis.index(min(dis))
+
+# Retorna o indice da escolha feita na questão passada do formulário tipo 0.
+def analyze_question_type_00(img: np.ndarray) -> int:
+    exc_black, good_black, fair_black, poor_black = count_question_black_pixels(img)
+
+    if exc_black >= 2000:
+        return 0
+    elif good_black >= 1300:
+        return 1
+    elif fair_black >= 1000:
+        return 2
+    elif poor_black >= 1000:
+        return 3
+    else:
+        dis = []
+        dis.append(abs(2000 - exc_black))
+        dis.append(abs(1300 - good_black))
+        dis.append(abs(1000 - fair_black))
+        dis.append(abs(1000 - poor_black))
+
+        return dis.index(min(dis))
+
+# Retorna o indice da escolha feita na questão binária passada do formulário tipo 0.
+def analyze_question_type_01(img: np.ndarray) -> int:
+    _, width = img.shape
+    img_yes = img[:, :width//2]
+    img_no = img[:, width//2:]
+
+    yes_black = int(np.sum(img_yes <= 127))
+    no_black = int(np.sum(img_no <= 127))
+    
+    if yes_black >= 1100:
+        return 0
+    elif no_black >= 1100:
+        return 1
+    else:
+        dis = []
+        dis.append(abs(1100 - yes_black))
+        dis.append(abs(1100 - no_black))
+
+        return dis.index(min(dis))
+
+# Retorna o indice da escolha feita na questão binária passada do formulário tipo 1.
+def analyze_question_type_11(img: np.ndarray) -> int:
+    _, width = img.shape
+    img_yes = img[:, :width//2]
+    img_no = img[:, width//2:]
+
+    yes_black = int(np.sum(img_yes <= 127))
+    no_black = int(np.sum(img_no <= 127))
+
+    if yes_black >= 1700:
+        return 0
+    elif no_black >= 1700:
+        return 1
+    else:
+        dis = []
+        dis.append(abs(1700 - yes_black))
+        dis.append(abs(1700 - no_black))
+
+        return dis.index(min(dis))
+
+# Retorna a nota da questão de avaliação.
+def analyze_rating(img: np.ndarray) -> int:
+    _, width = img.shape
+    offset = width // 10
+
+    values = []
+
+    for i in range(10):
+        values.append(int(np.sum(img[:, offset*i:offset*(i+1)] <= 127)))
+
+    return values.index(max(values))
+
+# Faz analise do formulário do tipo 0.
+def analyze_form_0(imgs: list) -> list:
+    results = []
+    for img in imgs[:6]:
+        results.append(analyze_question_type_00(img))
+    for img in imgs[6:9]:
+        results.append(analyze_question_type_01(img))
+
+    results.append(analyze_rating(imgs[9]))
+
+    return results
+
+# Faz analise do formulário do tipo 1.
+def analyze_form_1(imgs: list) -> list:
+    results = []
+    for img in imgs[:6]:
+        results.append(analyze_question_type_10(img))
+    for img in imgs[6:9]:
+        results.append(analyze_question_type_11(img))
+
+    results.append(analyze_rating(imgs[9]))
+
+    return results
+
+# Retorna uma lista com os dados dos formulários.
+def catch_forms_data(forms: list) -> list:
+    results = [[0]*4 for _ in range(6)]
+    results.append([0]*2)
+    results.append([0]*2)
+    results.append([0]*2)
+    results.append([0]*10)
+
+    for form in forms:
+        img = cv2.imread(form, cv2.IMREAD_GRAYSCALE)
+        form_type = catch_form_type(img)
+
+        regions = catch_regions(img)
+
+        if form_type == 1:
+            r = analyze_form_1(regions)
+        else:
+            r = analyze_form_0(regions)
+
+        for idx, i in enumerate(r):
+            results[idx][i] += 1
+
+    return results
 
 def main() -> None:
     argc = len(sys.argv)
@@ -107,7 +220,8 @@ def main() -> None:
 
     forms = sorted(glob(f"{forms_dir}/*.png"))
 
-    catch_forms_data(forms)
+    results = catch_forms_data(forms)
+    print(results)
 
 
 if __name__ == '__main__':
