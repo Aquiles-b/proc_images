@@ -220,7 +220,7 @@ def tag_answers_img(img, form_path: str, answers: list, form_type: int, out_dir:
 		draw_line(img, 1400 + 350*answers[8], q8_9_i+120, 80, 15)
 		# Inicio da questão de nota
 		rating_i = 2270
-		draw_line(img, 940 + 145*answers[9], rating_i+175, 80, 15)
+		draw_line(img, 960 + 145*answers[9], rating_i+175, 80, 15)
 
 	fname = form_path.split('/')[-1]
 	fname = f"{out_dir}/{fname[0:fname.find('.')]}.out{fname[fname.find('.'):]}"
