@@ -8,8 +8,9 @@ file_name = 'macroscopic0.zip'
 print(f'Downloading {file_name}...')
 urllib.request.urlretrieve(link, file_name)
 
+print('Extracting the zip file...')
 with zipfile.ZipFile(file_name, 'r') as zip_ref:
-    zip_ref.extractall('.')
+    zip_ref.extractall('macroscopic0')
 
 os.remove(file_name)
 
