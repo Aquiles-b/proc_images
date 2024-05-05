@@ -1,0 +1,13 @@
+Usar LBP e CNN para extrair características;
+Treinar um MLP e usar KNN de 1 e 3 para a classificação;
+Mostrar acurácia.
+
+# Detalhes:
+
+Dividir o dataset entre treino, validação e teste, sendo 50% dos dados para
+treino e validação e os outros 50% para teste (do qual vai sair as métricas).
+Validação serve para apertar parafusos.
+
+Dos dados para treino e validação, 80% será para treino.
+
+Obviamente a divisão deve acontecer entre as classes.
