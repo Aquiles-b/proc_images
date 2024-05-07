@@ -4,6 +4,7 @@ import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
 import torchvision.transforms as transforms
 from PIL import Image
+import time
 
 from glob import glob 
 
@@ -106,6 +107,8 @@ class TextureClassifier(nn.Module):
 
             # Epoch stats
             print(f"Epoch {epoch+1}/{num_epochs} - Train loss: {train_loss}, Validation loss: {val_loss}")
+        
+        torch.save(self.state_dict(), './texture_classifier.pt')
 
     def predict(self, image) -> dict:
         self.eval()
@@ -128,9 +131,14 @@ class TextureClassifier(nn.Module):
 
         return pred
 
+    def load_model(path: str) -> None:
+        self.load_state_dict(torch.load(path))
+
+
 def main() -> None:
+    image_dim = (2448, 3264)
     transform = transforms.Compose([
-        transforms.Resize((3264, 2448)), #1632, 1224
+        transforms.Resize(image_dim),
         transforms.ToTensor(),
         ])
 
@@ -142,16 +150,11 @@ def main() -> None:
     val_loader = DataLoader(val_data, batch_size=32, shuffle=True)
 
     model = TextureClassifier('cpu')
-    model.create_custom_model((2448, 3264))
-    # model.train_model(train_loader, val_loader, 1e-3)
-    pred = model.predict('./macroscopic0/val/0101.JPG')
-    print(pred)
+    model.create_custom_model(image_dim)
 
-    # img = Image.open('./macroscopic0/val/0101.JPG')
-    # img = transforms.ToTensor()(img)
-    # print(img.shape)
-    # p = model.cnn(img)
-    # print(p.shape)
+    start = time.time()
+    model.train_model(train_loader, val_loader, 1e-3)
+    print(f'{(time.time() - start)/60} minutos')
 
 
 if __name__ == "__main__":
