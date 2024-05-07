@@ -114,14 +114,17 @@ class TextureClassifier(nn.Module):
             image = transforms.ToTensor()(image)
         elif not torch.is_tensor(image):
             image = transforms.ToTensor()(image)
+
+        # Adiciona uma dimensão para o tamanho do lote (batch)
+        image = image.unsqueeze(0)
         
         image = image.to(self.device)
         with torch.no_grad():
             out = self(image)
             probs = nn.functional.softmax(out, dim=1)
 
-        idx = torch.argmax(probs)
-        pred = {'class': idx.item(), 'prob': probs.tolist()[idx]}
+        idx = torch.argmax(probs).item()
+        pred = {'class': idx, 'prob': probs.tolist()[0][idx]}
 
         return pred
 
@@ -143,6 +146,13 @@ def main() -> None:
     # model.train_model(train_loader, val_loader, 1e-3)
     pred = model.predict('./macroscopic0/val/0101.JPG')
     print(pred)
+
+    # img = Image.open('./macroscopic0/val/0101.JPG')
+    # img = transforms.ToTensor()(img)
+    # print(img.shape)
+    # p = model.cnn(img)
+    # print(p.shape)
+
 
 if __name__ == "__main__":
     main()
