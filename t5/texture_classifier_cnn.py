@@ -14,7 +14,7 @@ class TextureDataset(Dataset):
         super().__init__()
         self.data = sorted(glob(f'{data_dir}/*.JPG'))
         self.classes = [n.split('/')[-1][:2] for n in self.data]
-        self.targets = [torch.tensor(int(i)) for i in self.classes]
+        self.targets = [torch.tensor(int(i)-1) for i in self.classes]
         self.transform = transform
 
     def __len__(self):
@@ -131,7 +131,7 @@ class TextureClassifier(nn.Module):
 
         return pred
 
-    def load_model(path: str) -> None:
+    def load_model(self, path: str) -> None:
         self.load_state_dict(torch.load(path))
 
 
@@ -146,13 +146,16 @@ def main() -> None:
     train_data = TextureDataset('./macroscopic0/train', transform)
     val_data = TextureDataset('./macroscopic0/val', transform)
 
-    train_loader = DataLoader(train_data, batch_size=32, shuffle=True)
-    val_loader = DataLoader(val_data, batch_size=32, shuffle=True)
+    batch_size = 2
+
+    train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True)
+    val_loader = DataLoader(val_data, batch_size=batch_size, shuffle=True)
 
     model = TextureClassifier('cpu')
     model.create_custom_model(image_dim)
 
     start = time.time()
+    print('Começando treino:')
     model.train_model(train_loader, val_loader, 1e-3)
     print(f'{(time.time() - start)/60} minutos')
 
