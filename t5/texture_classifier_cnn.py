@@ -33,39 +33,13 @@ class TextureClassifier(nn.Module):
         self.device = torch.device(device)
         self.to(self.device)
 
-    def _calc_out_dim_model(self, x: int) -> int:
-        for _ in range(3):
-            x -= 2
-            x = x // 4
-        x -= 2
-        x = x // 2
-        return x
-
-    def create_custom_model(self, image_dimension: tuple[int, int]) -> None:
-        h, w = image_dimension
-        self.cnn = nn.Sequential(
-                nn.Conv2d(3, 64, (3,3)),
-                nn.ReLU(),
-                nn.AvgPool2d(kernel_size=(4,4), stride=4),
-                nn.Conv2d(64, 32, (3,3)),
-                nn.ReLU(),
-                nn.AvgPool2d(kernel_size=(4,4), stride=4),
-                nn.Conv2d(32, 32, (3,3)),
-                nn.ReLU(),
-                nn.AvgPool2d(kernel_size=(4,4), stride=4),
-                nn.Conv2d(32, 16, (3,3)),
-                nn.ReLU(),
-                nn.AvgPool2d(kernel_size=(2,2), stride=2),
-                nn.Flatten()
-                )
-        fc1_tam = self._calc_out_dim_model(w) * self._calc_out_dim_model(h) * 16
-        self.classifier = nn.Sequential(
-                nn.Linear(fc1_tam, 180),
-                nn.Linear(180, 45),
-                nn.Linear(45, 9)
-                )
-
+    def custom_model(self, cnn: nn.Sequential, classifier: nn.Sequential) -> None:
+        self.cnn = cnn
+        self.classifier = classifier
+        self.cnn.to(self.device)
+        self.classifier.to(self.device)
         self.model = nn.Sequential(self.cnn, self.classifier)
+        self.model.to(self.device)
 
     def forward(self, x):
         return self.model(x)
