@@ -47,7 +47,7 @@ class TextureClassifier(nn.Module):
     def train_model(self, train_loader: DataLoader, val_loader: DataLoader,
                     lr: float, num_epochs: int = 10) -> None:
 
-        optimizer = optim.Adam(self.model.parameters(), lr)
+        optimizer = optim.Adam(self.parameters(), lr)
         criterion = nn.CrossEntropyLoss()
 
         train_losses = []
@@ -60,9 +60,9 @@ class TextureClassifier(nn.Module):
             running_loss = 0
             for images, lbls in train_loader:
                 images, lbls = images.to(self.device), lbls.to(self.device)
-                optimizer.zero_grad()
                 outs = self(images)
                 loss = criterion(outs, lbls)
+                optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
                 running_loss += loss.item() * images.size(0)

@@ -56,7 +56,7 @@ def main() -> None:
     train_data = TextureDataset('./macroscopic0/train', transform)
     val_data = TextureDataset('./macroscopic0/val', transform)
 
-    batch_size = 2
+    batch_size = 8
 
     train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True)
     val_loader = DataLoader(val_data, batch_size=batch_size, shuffle=True)
