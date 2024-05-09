@@ -7,31 +7,38 @@ import numpy as np
 import torch
 
 
-def create_custom_model(num_classes=9) -> tuple[nn.Sequential, nn.Sequential]:
+def calc_input_mlp(image_dim: tuple[int, int], cnn: nn.Sequential) -> int:
+    x = torch.randn(1, 3, *image_dim)
+    y = cnn(x)
+    return y.view(1, -1).shape[1]
+
+def create_custom_model(image_dim: tuple[int, int], num_classes: int = 9) -> tuple[nn.Sequential, nn.Sequential]:
     cnn = nn.Sequential(
         nn.Conv2d(3, 64, kernel_size=(3,3)),
         nn.ReLU(),
-        nn.BatchNorm2d(64),  # Adicionando Batch Normalization
+        nn.BatchNorm2d(64),
         nn.MaxPool2d(kernel_size=(2,2), stride=2),
 
         nn.Conv2d(64, 128, kernel_size=(3,3)),
         nn.ReLU(),
-        nn.BatchNorm2d(128),  # Adicionando Batch Normalization
+        nn.BatchNorm2d(128),
         nn.MaxPool2d(kernel_size=(2,2), stride=2),
 
         nn.Conv2d(128, 256, kernel_size=(3,3)),
         nn.ReLU(),
-        nn.BatchNorm2d(256),  # Adicionando Batch Normalization
+        nn.BatchNorm2d(256),
         nn.MaxPool2d(kernel_size=(2,2), stride=2)
         )
 
+    fc1_input = calc_input_mlp(image_dim, cnn)
+
     classifier = nn.Sequential(
-        nn.Linear(256 * 3 * 3, 512),  # Ajustando o tamanho da entrada
+        nn.Linear(fc1_input, 512),
         nn.ReLU(),
-        nn.Dropout(0.5),  # Adicionando Dropout
+        nn.Dropout(0.5),
         nn.Linear(512, 180),
         nn.ReLU(),
-        nn.Dropout(0.5),  # Adicionando Dropout
+        nn.Dropout(0.5),
         nn.Linear(180, num_classes)
         )
 
@@ -57,14 +64,14 @@ def main() -> None:
     train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True)
     val_loader = DataLoader(val_data, batch_size=batch_size, shuffle=True)
 
-    cnn, clf = create_custom_model(9)
+    cnn, clf = create_custom_model(image_dim, 9)
 
     model = TextureClassifier('cpu')
     model.custom_model(cnn, clf)
 
     start = time.time()
     print('Começando treino:')
-    model.train_model(train_loader, val_loader, 2e-2, 20)
+    model.train_model(train_loader, val_loader, 1e-3, 20)
     print(f'{(time.time() - start)/60} minutos')
 
 
