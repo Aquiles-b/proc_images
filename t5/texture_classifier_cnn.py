@@ -33,17 +33,22 @@ class TextureClassifier(nn.Module):
         self.device = torch.device(device)
         self.to(self.device)
 
-    def custom_model(self, cnn: nn.Sequential, classifier: nn.Sequential) -> None:
-        self.cnn = cnn
+    def custom_model(self, cnn1: nn.Sequential, cnn2: nn.Sequential, classifier: nn.Sequential) -> None:
+        self.cnn1 = cnn1
+        self.cnn2 = cnn2
         self.classifier = classifier
-        self.cnn.to(self.device)
+        self.cnn1.to(self.device)
+        self.cnn2.to(self.device)
         self.classifier.to(self.device)
 
     def forward(self, x):
-        x = self.cnn(x)
+        x1 = self.cnn1(x)
+        x2 = self.cnn2(x)
 
-        fc1_tam = x.size(1) * x.size(2) * x.size(3)
-        x = x.view(-1, fc1_tam)
+        tam_x1 = x1.size(1) * x1.size(2) * x1.size(3)
+        tam_x2 = x2.size(1) * x2.size(2) * x2.size(3)
+
+        x = torch.cat((x1.view(-1, tam_x1), x2.view(-1, tam_x2)), dim=1)
 
         x = self.classifier(x)
 
