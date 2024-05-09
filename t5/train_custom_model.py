@@ -17,16 +17,16 @@ def create_custom_model(image_dim: tuple[int, int], num_classes: int = 9) -> tup
         nn.Conv2d(3, 64, kernel_size=(3,3)),
         nn.ReLU(),
         nn.BatchNorm2d(64),
-        nn.MaxPool2d(kernel_size=(2,2), stride=2),
+        nn.MaxPool2d(kernel_size=(4,4), stride=4),
 
         nn.Conv2d(64, 128, kernel_size=(3,3)),
         nn.ReLU(),
         nn.BatchNorm2d(128),
-        nn.MaxPool2d(kernel_size=(2,2), stride=2),
+        nn.MaxPool2d(kernel_size=(4,4), stride=4),
 
-        nn.Conv2d(128, 256, kernel_size=(3,3)),
+        nn.Conv2d(128, 128, kernel_size=(3,3)),
         nn.ReLU(),
-        nn.BatchNorm2d(256),
+        nn.BatchNorm2d(128),
         nn.MaxPool2d(kernel_size=(2,2), stride=2)
         )
 
@@ -59,7 +59,7 @@ def main() -> None:
     train_data = TextureDataset('./macroscopic0/train', transform)
     val_data = TextureDataset('./macroscopic0/val', transform)
 
-    batch_size = 4
+    batch_size = 2
 
     train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True)
     val_loader = DataLoader(val_data, batch_size=batch_size, shuffle=True)
