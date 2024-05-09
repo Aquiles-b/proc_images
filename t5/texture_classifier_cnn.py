@@ -38,11 +38,16 @@ class TextureClassifier(nn.Module):
         self.classifier = classifier
         self.cnn.to(self.device)
         self.classifier.to(self.device)
-        self.model = nn.Sequential(self.cnn, self.classifier)
-        self.model.to(self.device)
 
     def forward(self, x):
-        return self.model(x)
+        x = self.cnn(x)
+
+        fc1_tam = x.size(1) * x.size(2) * x.size(3)
+        x = x.view(-1, fc1_tam)
+
+        x = self.classifier(x)
+
+        return x
 
     def train_model(self, train_loader: DataLoader, val_loader: DataLoader,
                     lr: float, num_epochs: int = 10) -> None:
@@ -82,7 +87,7 @@ class TextureClassifier(nn.Module):
 
             # Epoch stats
             print(f"Epoch {epoch+1}/{num_epochs} - Train loss: {train_loss}, Validation loss: {val_loss}")
-        
+
         torch.save(self.state_dict(), './texture_classifier.pt')
 
     def predict(self, image) -> dict:
@@ -95,7 +100,7 @@ class TextureClassifier(nn.Module):
 
         # Adiciona uma dimensão para o tamanho do lote (batch)
         image = image.unsqueeze(0)
-        
+
         image = image.to(self.device)
         with torch.no_grad():
             out = self(image)
