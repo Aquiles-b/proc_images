@@ -3,7 +3,6 @@ from numpy._typing import NDArray
 from skimage import feature
 from PIL import Image
 from glob import glob
-import csv
 
 
 def LBP_feature_hist(img: Image.Image, label: int) -> NDArray:
@@ -40,23 +39,18 @@ def normalize_hist(hist: NDArray) -> list:
         hist_l[idx] = (num_field - min) / div
     return hist_l
 
-# Escreve a lista de histogramas no final do arquivo csv.
-def write_histograms_csv(csv_name: str, hist_list: list) -> None:
-    with open(csv_name, mode='a', newline=None) as hist_csv:
-        writer = csv.writer(hist_csv, delimiter=';')
-        writer.writerows(hist_list)
+# Gerar histogramas LBP das images no diretorio @imgs_dir e retorna
+# uma lista de histogramas.
+def LBP_dir_hists(imgs_dir: str, image_dim: tuple,
+                  img_gray: bool = True) -> list[NDArray]:
+    imgs = glob(f'{imgs_dir}/*')
 
-# Escreve em um csv o vetor de caracteristicas de cada imagem em @imgs_dir
-# dentro do diretorio imgs_dir.
-# image_dim: (width, height)
-def create_LBP_csv_hists(imgs_dir: str, csv_name: str, 
-                         image_dim: tuple, mode = 'L') -> None:
-    imgs = glob(f'{imgs_dir}/*.JPG')
-
-    if mode == 'L':
+    if img_gray:
         lbp_func = LBP_feature_hist_gray
+        mode = 'L'
     else:
         lbp_func = LBP_feature_hist
+        mode = 'RGB'
 
     hist_list = list()
 
@@ -67,13 +61,5 @@ def create_LBP_csv_hists(imgs_dir: str, csv_name: str,
         hist = lbp_func(img, label)
         hist_list.append(hist)
 
-    write_histograms_csv(csv_name, hist_list)
+    return hist_list
 
-# Retorna uma lista de listas de floats vindos do csv passado.
-def read_LBP_hists(csv_name: str) -> list[NDArray]:
-    with open(csv_name, 'r') as file:
-        file_csv = csv.reader(file, delimiter=';')
-        file_list = list()
-        for row in file_csv:
-            file_list.append(np.array([float(i) for i in row]))
-        return file_list
