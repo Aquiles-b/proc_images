@@ -1,9 +1,7 @@
-from texture_classifier_cnn import TextureClassifier, TextureDataset
-from train_custom_model import create_custom_model
-import torch.nn as nn
+from core import TextureClassifier, TextureDataset
+from generate_data import create_custom_model
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
-from PIL import Image
 
 model = TextureClassifier("cuda")
 model.custom_model(*create_custom_model((384, 384), 9))

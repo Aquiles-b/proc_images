@@ -55,7 +55,7 @@ class TextureClassifier(nn.Module):
         return x
 
     def train_model(self, train_loader: DataLoader, val_loader: DataLoader,
-                    lr: float, num_epochs: int = 10) -> None:
+                    lr: float, num_epochs: int = 10, path_to_save: str = '.') -> None:
 
         optimizer = optim.Adam(self.parameters(), lr)
         criterion = nn.CrossEntropyLoss()
@@ -93,7 +93,7 @@ class TextureClassifier(nn.Module):
             # Epoch stats
             print(f"Epoch {epoch+1}/{num_epochs} - Train loss: {train_loss}, Validation loss: {val_loss}")
 
-        torch.save(self.state_dict(), './texture_classifier.pt')
+        torch.save(self.state_dict(), path_to_save)
 
     def predict(self, image) -> dict:
         self.eval()
