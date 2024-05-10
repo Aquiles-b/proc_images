@@ -1,4 +1,4 @@
-import __basic_import__
+from . import _basic_import
 from core import LBP_dir_hists, TextureDataset, TextureClassifier, write_histograms_csv 
 from generate_data import create_custom_model
 import torchvision.transforms as transforms

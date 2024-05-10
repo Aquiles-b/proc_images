@@ -1,4 +1,4 @@
-import __basic_import__
+from . import _basic_import
 from core import TextureClassifier, TextureDataset
 import torch.nn as nn
 import torchvision.transforms as transforms
