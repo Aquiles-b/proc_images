@@ -61,7 +61,7 @@ def create_LBP_csv_data(img_gray: bool = True) -> None:
     
     for sub_set in sub_sets:
         hists = LBP_dir_hists(f'{macroscopic0_dir}/{sub_set}', image_dim, img_gray=img_gray)
-        write_histograms_csv(f"{data_path}/{sub_set}_CNN.csv", hists)
+        write_histograms_csv(f"{data_path}/{sub_set}_LBP.csv", hists)
 
 if __name__ == '__main__':
     create_LBP_csv_data(False)
