@@ -1,4 +1,7 @@
-from . import _basic_import
+import os
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from core import TextureClassifier, TextureDataset
 import torch.nn as nn
 import torchvision.transforms as transforms
@@ -6,8 +9,6 @@ from torch.utils.data import DataLoader
 import time
 import numpy as np
 import torch
-import sys
-import os
 
 
 def calc_input_mlp(image_dim: tuple[int, int], cnn: nn.Sequential) -> int:
@@ -96,12 +97,15 @@ def train_model() -> None:
     model = TextureClassifier(sys.argv[1])
     model.custom_model(cnn1, cnn2, clf)
 
-    trained_model_path = f"{CURRENT_DIR}/../data/texture_classifier.pt"
+    data_path = f'{CURRENT_DIR}/../data'
+
+    os.makedirs(data_path, exist_ok=True)
+
+    trained_model_path = f"{data_path}/texture_classifier.pt"
 
     if os.path.exists(trained_model_path):
         model.load_model(trained_model_path)
 
-    data_path = f'{CURRENT_DIR}/../data'
 
     start = time.time()
     print('Começando treino:')
