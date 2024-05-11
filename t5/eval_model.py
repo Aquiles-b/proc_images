@@ -3,9 +3,10 @@ from generate_data import create_custom_model
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 
-model = TextureClassifier("cuda")
-model.custom_model(*create_custom_model((384, 384), 9))
-model.load_model("texture_classifier384-384.pt")
+model = TextureClassifier("cpu")
+# model.custom_model(*create_custom_model((384, 384), 9))
+# model.load_model("texture_classifier384-384.pt")
+model.resnet50(9)
 transform = transforms.Compose([
 		transforms.CenterCrop((768, 768)),
 		transforms.Resize((384, 384)),

@@ -1,7 +1,13 @@
 from core import read_hists, KNN_decision
+import sys
 
-train_hists = read_hists("data/train_LBP.csv")
-val_hists = read_hists("data/test_LBP.csv")
+
+if sys.argv[1] == "lbp":
+    train_hists = read_hists("data/train_LBP.csv")
+    val_hists = read_hists("data/val_LBP.csv")
+else:
+    train_hists = read_hists("data/train_CNN.csv")
+    val_hists = read_hists("data/val_CNN.csv")
 
 confusion_matrix = [[0] * 9 for _ in range(9)]
 

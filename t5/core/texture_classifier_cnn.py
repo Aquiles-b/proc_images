@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
 import torchvision.transforms as transforms
+import torchvision.models as models
 from PIL import Image
 
 from glob import glob 
@@ -41,7 +42,32 @@ class TextureClassifier(nn.Module):
         self.cnn2.to(self.device)
         self.classifier.to(self.device)
 
+        self.forward = self.custom_forward
+
+    def resnet50(self, num_classes: int, freeze: bool = True) -> None:
+        resnet = models.resnet50(weights=models.ResNet50_Weights.DEFAULT)
+        self.cnn1 = nn.Sequential(*list(resnet.children())[:-2])
+        self.cnn2 = None
+
+        self.classifier = nn.Sequential(nn.Linear(resnet.fc.in_features, 512),
+                                        nn.ReLU(),
+                                        nn.Linear(512, num_classes))
+        if freeze:
+            for param in self.cnn1.parameters():
+                param.requires_grad = False
+
+        self.cnn1.to(self.device)
+        self.classifier.to(self.device)
+
     def forward(self, x):
+        x = self.cnn1(x)
+        tam_x1 = x.size(1) * x.size(2) * x.size(3)
+        x = x.view(-1, tam_x1)
+        x = self.classifier(x)
+
+        return x
+
+    def custom_forward(self, x):
         x1 = self.cnn1(x)
         x2 = self.cnn2(x)
 
