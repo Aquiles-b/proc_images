@@ -94,7 +94,7 @@ def train_model() -> None:
 
     cnn1, cnn2, clf = create_custom_model(image_dim, 9)
 
-    model = TextureClassifier(sys.argv[1])
+    model = TextureClassifier()
     model.custom_model(cnn1, cnn2, clf)
 
     data_path = f'{CURRENT_DIR}/../data'
@@ -109,7 +109,7 @@ def train_model() -> None:
 
     start = time.time()
     print('Começando treino:')
-    model.train_model(train_loader, val_loader, 0.0001, 30, path_to_save=data_path)
+    model.train_model(train_loader, val_loader, 0.001, 30, path_to_save=data_path)
     print(f'{(time.time() - start)/60} minutos')
 
 

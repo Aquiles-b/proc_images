@@ -7,7 +7,7 @@ if sys.argv[1] == "lbp":
     val_hists = read_hists("data/val_LBP.csv")
 else:
     train_hists = read_hists("data/train_CNN.csv")
-    val_hists = read_hists("data/val_CNN.csv")
+    val_hists = read_hists("data/test_CNN.csv")
 
 confusion_matrix = [[0] * 9 for _ in range(9)]
 

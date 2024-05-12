@@ -44,10 +44,10 @@ def create_CNN_csv_data(model: torch.nn.Module) -> None:
     data_path = f'{CURRENT_DIR}/../data'
     os.makedirs(data_path, exist_ok=True)
 
-    dim = (384, 384)
+    dim = (224, 224)
 
     transform = transforms.Compose([
-            transforms.CenterCrop((768, 768)),
+            # transforms.CenterCrop((768, 768)),
             transforms.Resize(dim),
             transforms.ToTensor(),
         ])
@@ -73,7 +73,7 @@ def create_LBP_csv_data(img_gray: bool = True) -> None:
     os.makedirs(data_path, exist_ok=True)
 
     image_dim = (3264, 2448)
-    fator = 2
+    fator = 4
     image_dim = (image_dim[0] // fator, image_dim[1] // fator)
 
     sub_sets = ['train', 'val', 'test']
@@ -85,7 +85,7 @@ def create_LBP_csv_data(img_gray: bool = True) -> None:
 if __name__ == '__main__':
     # model = TextureClassifier('cpu')
     # model.custom_model(*create_custom_model((384, 384), 9))
-    model = TextureClassifier('cpu')
-    model.resnet50(9, freeze=True)
-    # create_LBP_csv_data(False)
+    model = TextureClassifier()
+    model.VGG16(9, freeze=True)
     create_CNN_csv_data(model)
+    # create_LBP_csv_data(False)

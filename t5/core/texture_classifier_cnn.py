@@ -29,9 +29,9 @@ class TextureDataset(Dataset):
 
 
 class TextureClassifier(nn.Module):
-    def __init__(self, device) -> None:
+    def __init__(self) -> None:
         super().__init__()
-        self.device = torch.device(device)
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.to(self.device)
 
     def custom_model(self, cnn1: nn.Sequential, cnn2: nn.Sequential, classifier: nn.Sequential) -> None:
@@ -44,17 +44,22 @@ class TextureClassifier(nn.Module):
 
         self.forward = self.custom_forward
 
-    def resnet50(self, num_classes: int, freeze: bool = True) -> None:
-        resnet = models.resnet50(weights=models.ResNet50_Weights.DEFAULT)
-        self.cnn1 = nn.Sequential(*list(resnet.children())[:-2])
+    def VGG16(self, num_classes: int, freeze: bool = True) -> None:
+        vgg16 = models.vgg16(weights=models.VGG16_Weights.DEFAULT)
+        self.cnn1 = vgg16.features
         self.cnn2 = None
-
-        self.classifier = nn.Sequential(nn.Linear(resnet.fc.in_features, 512),
-                                        nn.ReLU(),
-                                        nn.Linear(512, num_classes))
         if freeze:
             for param in self.cnn1.parameters():
                 param.requires_grad = False
+
+        tam_fc1 = vgg16.classifier[0].in_features
+        self.classifier = nn.Sequential(
+            nn.Linear(tam_fc1, 1024),
+            nn.ReLU(),
+            nn.Linear(1024, 512),
+            nn.ReLU(),
+            nn.Linear(512, num_classes)
+        )
 
         self.cnn1.to(self.device)
         self.classifier.to(self.device)
