@@ -131,7 +131,7 @@ def main() -> None:
     performance_table.append(['Representação', 'Classificador (MLP)', 'KNN'])
 
     # Gera os dados LBP 
-    create_LBP_csv_data((816, 612))
+    create_LBP_csv_data((408, 306))
     clf = train_LBP_classifier(100, lr=0.001)
     acc_pred, acc_knn = get_LBP_metrics(clf)
     performance_table.append(['LBP', acc_pred, acc_knn])
