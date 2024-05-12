@@ -31,7 +31,10 @@ def fine_tune_VGG16(image_dim: tuple[int, int], freeze: bool) -> torch.nn.Module
     model = TextureClassifier()
     model.VGG16(9, freeze)
 
-    path_to_save = './data/texture_clf_vgg16.pth'
+    if freeze:
+        path_to_save = './data/texture_clf_vgg16_freezed.pth'
+    else:
+        path_to_save = './data/texture_clf_vgg16_finetuned.pth'
 
     if os.path.exists(path_to_save):
         model.load_model(path_to_save)
