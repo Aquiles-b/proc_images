@@ -2,13 +2,13 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from core import LBP_dir_hists, TextureDataset, TextureClassifier, write_histograms_csv 
-from generate_data import create_custom_model
+from core import LBP_dir_hists, TextureDataset, write_histograms_csv 
 import torchvision.transforms as transforms
 import torch
 from torch.utils.data import DataLoader
 import numpy as np
 from numpy import ndarray as NDArray
+
 
 CURRENT_DIR = os.path.dirname(__file__)
 
@@ -40,17 +40,8 @@ def _one_cnn(model: torch.nn.Module, loader: DataLoader) -> list[NDArray]:
 
     return fv
 
-def create_CNN_csv_data(model: torch.nn.Module) -> None:
+def create_CNN_csv_data(name: str, model: torch.nn.Module, transform: transforms.Compose) -> None:
     data_path = f'{CURRENT_DIR}/../data'
-    os.makedirs(data_path, exist_ok=True)
-
-    dim = (224, 224)
-
-    transform = transforms.Compose([
-            # transforms.CenterCrop((768, 768)),
-            transforms.Resize(dim),
-            transforms.ToTensor(),
-        ])
 
     macroscopic0_dir = f'{CURRENT_DIR}/../macroscopic0'
     sub_sets = ['train', 'val', 'test']
@@ -64,28 +55,15 @@ def create_CNN_csv_data(model: torch.nn.Module) -> None:
         else:
             fv = _one_cnn(model, test_loader)
 
-        write_histograms_csv(f"{data_path}/{sub_set}_CNN.csv", fv)
+        write_histograms_csv(f"{data_path}/{sub_set}_{name}_CNN.csv", fv)
 
-def create_LBP_csv_data(img_gray: bool = True) -> None:
+def create_LBP_csv_data(image_dim : tuple[int, int], img_gray: bool = True) -> None:
     macroscopic0_dir = f'{CURRENT_DIR}/../macroscopic0'
     data_path = f'{CURRENT_DIR}/../data'
-
-    os.makedirs(data_path, exist_ok=True)
-
-    image_dim = (3264, 2448)
-    fator = 4
-    image_dim = (image_dim[0] // fator, image_dim[1] // fator)
 
     sub_sets = ['train', 'val', 'test']
     
     for sub_set in sub_sets:
+        csv_name = f"{data_path}/{sub_set}_LBP.csv"
         hists = LBP_dir_hists(f'{macroscopic0_dir}/{sub_set}', image_dim, img_gray=img_gray)
-        write_histograms_csv(f"{data_path}/{sub_set}_LBP.csv", hists)
-
-if __name__ == '__main__':
-    # model = TextureClassifier('cpu')
-    # model.custom_model(*create_custom_model((384, 384), 9))
-    model = TextureClassifier()
-    model.VGG16(9, freeze=True)
-    create_CNN_csv_data(model)
-    # create_LBP_csv_data(False)
+        write_histograms_csv(csv_name, hists)

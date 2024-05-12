@@ -2,14 +2,15 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from core import TextureClassifier, TextureDataset
+from core import TextureDataset
 import torch.nn as nn
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 import time
-import numpy as np
 import torch
 
+
+CURRENT_DIR = os.path.dirname(__file__)
 
 def calc_input_mlp(image_dim: tuple[int, int], cnn: nn.Sequential) -> int:
     x = torch.randn(1, 3, *image_dim)
@@ -18,7 +19,6 @@ def calc_input_mlp(image_dim: tuple[int, int], cnn: nn.Sequential) -> int:
 
 def create_custom_model(image_dim: tuple[int, int], 
                         num_classes: int = 9) -> tuple[nn.Sequential, nn.Sequential, nn.Sequential]:
-
     cnn1 = nn.Sequential(
             nn.Conv2d(3, 32, kernel_size=(3,3)),
             nn.ReLU(),
@@ -63,13 +63,9 @@ def create_custom_model(image_dim: tuple[int, int],
 
     return cnn1, cnn2, classifier
 
-def train_model() -> None:
-    np.random.seed(2024)
-    torch.manual_seed(2024)
+def train_model(model: nn.Module, image_dim: tuple[int, int],
+                path_to_save: str, lr: float, epochs: int) -> None:
 
-    image_dim_original = (2448, 3264)
-
-    image_dim = (384, 384)
     transform = transforms.Compose([
         transforms.RandomRotation(360),
         transforms.RandomCrop((768, 768)),
@@ -78,8 +74,6 @@ def train_model() -> None:
         transforms.RandomVerticalFlip(0.5),
         transforms.ToTensor(),
         ])
-
-    CURRENT_DIR = os.path.dirname(__file__)
 
     macroscopic0_path = f'{CURRENT_DIR}/../macroscopic0'
 
@@ -92,26 +86,7 @@ def train_model() -> None:
     train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True)
     val_loader = DataLoader(val_data, batch_size=batch_size, shuffle=True)
 
-    cnn1, cnn2, clf = create_custom_model(image_dim, 9)
-
-    model = TextureClassifier()
-    model.custom_model(cnn1, cnn2, clf)
-
-    data_path = f'{CURRENT_DIR}/../data'
-
-    os.makedirs(data_path, exist_ok=True)
-
-    trained_model_path = f"{data_path}/texture_classifier.pt"
-
-    if os.path.exists(trained_model_path):
-        model.load_model(trained_model_path)
-
-
     start = time.time()
     print('Começando treino:')
-    model.train_model(train_loader, val_loader, 0.001, 30, path_to_save=data_path)
+    model.train_model(train_loader, val_loader, lr, epochs, path_to_save=path_to_save)
     print(f'{(time.time() - start)/60} minutos')
-
-
-if __name__ == "__main__":
-    train_model()

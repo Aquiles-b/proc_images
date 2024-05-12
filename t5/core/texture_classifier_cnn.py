@@ -134,9 +134,6 @@ class TextureClassifier(nn.Module):
         elif not torch.is_tensor(image):
             image = transforms.ToTensor()(image)
 
-        # Adiciona uma dimensão para o tamanho do lote (batch)
-        # image = image.unsqueeze(0)
-
         image = image.to(self.device)
         with torch.no_grad():
             out = self(image)
