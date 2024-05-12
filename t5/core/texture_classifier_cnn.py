@@ -1,3 +1,4 @@
+from numpy._typing import NDArray
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -7,6 +8,18 @@ import torchvision.models as models
 from PIL import Image
 
 from glob import glob 
+
+
+class LBPDataset(Dataset):
+    def __init__(self, hists: list[NDArray]):
+        self.hists = [hist[:-1] for hist in hists]
+        self.targets = [int(hist[-1]) for hist in hists]
+
+    def __len__(self):
+        return len(self.hists)
+
+    def __getitem__(self, idx):
+        return torch.tensor(self.hists[idx]), torch.tensor(self.targets[idx])
 
 
 class TextureDataset(Dataset):
@@ -63,6 +76,20 @@ class TextureClassifier(nn.Module):
 
         self.cnn1.to(self.device)
         self.classifier.to(self.device)
+
+    def create_LBP_clf(self, num_inputs: int, num_classes: int) -> None:
+        self.classifier = nn.Sequential(
+            nn.Linear(num_inputs, 128),
+            nn.ReLU(),
+            nn.Linear(128, 64),
+            nn.ReLU(),
+            nn.Linear(64, num_classes)
+        )
+        self.classifier.to(self.device)
+        self.forward = self.forward_simple_classifier
+
+    def forward_simple_classifier(self, x):
+        return self.classifier(x)
 
     def forward(self, x):
         x = self.cnn1(x)
@@ -126,17 +153,12 @@ class TextureClassifier(nn.Module):
 
         torch.save(self.state_dict(), path_to_save)
 
-    def predict(self, image) -> dict:
+    def predict(self, x) -> dict:
         self.eval()
-        if isinstance(image, str):
-            image = Image.open(image)
-            image = transforms.ToTensor()(image)
-        elif not torch.is_tensor(image):
-            image = transforms.ToTensor()(image)
 
-        image = image.to(self.device)
+        x = x.to(self.device)
         with torch.no_grad():
-            out = self(image)
+            out = self(x)
             probs = nn.functional.softmax(out, dim=1)
 
         idx = torch.argmax(probs).item()
