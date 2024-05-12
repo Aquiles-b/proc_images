@@ -33,19 +33,26 @@ def train_LBP_classifier(num_epochs: int, lr: float) -> torch.nn.Module:
 
     return model
 
+def calc_input_mlp(image_dim: tuple[int, int], cnn: torch.nn.Sequential) -> int:
+    x = torch.randn(1, 3, *image_dim)
+    y = cnn(x)
+    return y.view(1, -1).shape[1]
+
 # Treina um modelo customizado, salva e retorna o modelo treinado.
 def train_custom_model(image_dim: tuple[int, int]) -> torch.nn.Module: 
-    cnn1, cnn2, clf = create_custom_model(image_dim, 9)
+    cnn1, cnn2 = create_custom_model()
+    fc1_input = calc_input_mlp(image_dim, cnn1)
+    fc1_input += calc_input_mlp(image_dim, cnn2)
     model = TextureClassifier()
-    model.custom_model(cnn1, cnn2, clf)
+    model.custom_model(cnn1, cnn2, fc1_input, 9)
 
     path_to_save = './data/texture_clf_custom.pth'
 
     if os.path.exists(path_to_save):
         model.load_model(path_to_save)
     else:
-        train_model(model, image_dim, path_to_save, 0.01, 15)
-        train_model(model, image_dim, path_to_save, 0.001, 30)
+        print('Custom model')
+        train_model(model, image_dim, path_to_save, 0.001, 60)
 
     return model
 
@@ -62,7 +69,8 @@ def fine_tune_VGG16(image_dim: tuple[int, int], freeze: bool) -> torch.nn.Module
     if os.path.exists(path_to_save):
         model.load_model(path_to_save)
     else:
-        train_model(model, image_dim, path_to_save, 0.001, 35)
+        print(f'VGG16 {freeze = }')
+        train_model(model, image_dim, path_to_save, 0.001, 60)
 
     return model
 

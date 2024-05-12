@@ -7,18 +7,11 @@ import torch.nn as nn
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 import time
-import torch
 
 
 CURRENT_DIR = os.path.dirname(__file__)
 
-def calc_input_mlp(image_dim: tuple[int, int], cnn: nn.Sequential) -> int:
-    x = torch.randn(1, 3, *image_dim)
-    y = cnn(x)
-    return y.view(1, -1).shape[1]
-
-def create_custom_model(image_dim: tuple[int, int], 
-                        num_classes: int = 9) -> tuple[nn.Sequential, nn.Sequential, nn.Sequential]:
+def create_custom_model() -> tuple[nn.Sequential, nn.Sequential]:
     cnn1 = nn.Sequential(
             nn.Conv2d(3, 32, kernel_size=(3,3)),
             nn.ReLU(),
@@ -50,18 +43,7 @@ def create_custom_model(image_dim: tuple[int, int],
             nn.AvgPool2d(kernel_size=(2,2), stride=2),
             )
 
-    fc1_input = calc_input_mlp(image_dim, cnn1)
-    fc1_input += calc_input_mlp(image_dim, cnn2)
-
-    classifier = nn.Sequential(
-            nn.Linear(fc1_input, 512),
-            nn.ReLU(),
-            nn.Linear(512, 180),
-            nn.ReLU(),
-            nn.Linear(180, num_classes)
-            )
-
-    return cnn1, cnn2, classifier
+    return cnn1, cnn2
 
 def train_model(model: nn.Module, image_dim: tuple[int, int],
                 path_to_save: str, lr: float, epochs: int) -> None:

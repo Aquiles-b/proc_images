@@ -46,10 +46,11 @@ class TextureClassifier(nn.Module):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.to(self.device)
 
-    def custom_model(self, cnn1: nn.Sequential, cnn2: nn.Sequential, classifier: nn.Sequential) -> None:
+    def custom_model(self, cnn1: nn.Sequential, cnn2: nn.Sequential, 
+                     num_inputs_clf: int, num_classes: int) -> None:
         self.cnn1 = cnn1
         self.cnn2 = cnn2
-        self.classifier = classifier
+        self.classifier = self._create_clf(num_inputs_clf, num_classes)
         self.cnn1.to(self.device)
         self.cnn2.to(self.device)
         self.classifier.to(self.device)
@@ -65,19 +66,13 @@ class TextureClassifier(nn.Module):
                 param.requires_grad = False
 
         tam_fc1 = vgg16.classifier[0].in_features
-        self.classifier = nn.Sequential(
-            nn.Linear(tam_fc1, 1024),
-            nn.ReLU(),
-            nn.Linear(1024, 512),
-            nn.ReLU(),
-            nn.Linear(512, num_classes)
-        )
+        self.classifier = self._create_clf(tam_fc1, num_classes)
 
         self.cnn1.to(self.device)
         self.classifier.to(self.device)
 
-    def create_LBP_clf(self, num_inputs: int, num_classes: int) -> None:
-        self.classifier = nn.Sequential(
+    def _create_clf(self, num_inputs: int, num_classes: int) -> nn.Sequential:
+        classifier = nn.Sequential(
             nn.Linear(num_inputs, 512),
             nn.BatchNorm1d(512),
             nn.ReLU(),
@@ -91,6 +86,11 @@ class TextureClassifier(nn.Module):
             nn.Dropout(0.5),
             nn.Linear(128, num_classes)
         )
+
+        return classifier
+
+    def create_LBP_clf(self, num_inputs: int, num_classes: int) -> None:
+        self.classifier = self._create_clf(num_inputs, num_classes)
         self.classifier.to(self.device)
         self.forward = self.forward_simple_classifier
 
