@@ -2,7 +2,7 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from core import LBP_dir_hists, TextureDataset, write_histograms_csv 
+from core import LBP_dir_hists, TextureDataset, write_lists_csv
 import torchvision.transforms as transforms
 import torch
 from torch.utils.data import DataLoader
@@ -47,6 +47,10 @@ def create_CNN_csv_data(name: str, model: torch.nn.Module, transform: transforms
     sub_sets = ['train', 'val', 'test']
 
     for sub_set in sub_sets:
+        csv_name = f"{data_path}/{sub_set}_{name}_CNN.csv"
+        if os.path.exists(csv_name):
+            continue
+
         dataset = TextureDataset(f"{macroscopic0_dir}/{sub_set}", transform)
         test_loader = DataLoader(dataset, batch_size=1, shuffle=False)
 
@@ -55,7 +59,7 @@ def create_CNN_csv_data(name: str, model: torch.nn.Module, transform: transforms
         else:
             fv = _one_cnn(model, test_loader)
 
-        write_histograms_csv(f"{data_path}/{sub_set}_{name}_CNN.csv", fv)
+        write_lists_csv(csv_name, fv)
 
 def create_LBP_csv_data(image_dim : tuple[int, int], img_gray: bool = True) -> None:
     macroscopic0_dir = f'{CURRENT_DIR}/../macroscopic0'
@@ -65,5 +69,7 @@ def create_LBP_csv_data(image_dim : tuple[int, int], img_gray: bool = True) -> N
     
     for sub_set in sub_sets:
         csv_name = f"{data_path}/{sub_set}_LBP.csv"
+        if os.path.exists(csv_name):
+            continue
         hists = LBP_dir_hists(f'{macroscopic0_dir}/{sub_set}', image_dim, img_gray=img_gray)
-        write_histograms_csv(csv_name, hists)
+        write_lists_csv(csv_name, hists)
