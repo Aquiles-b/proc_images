@@ -3,7 +3,6 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
-import torchvision.transforms as transforms
 import torchvision.models as models
 from PIL import Image
 
@@ -19,7 +18,7 @@ class LBPDataset(Dataset):
         return len(self.hists)
 
     def __getitem__(self, idx):
-        return torch.tensor(self.hists[idx]), torch.tensor(self.targets[idx])
+        return torch.tensor(self.hists[idx], dtype=torch.float32), torch.tensor(self.targets[idx])
 
 
 class TextureDataset(Dataset):
@@ -79,11 +78,18 @@ class TextureClassifier(nn.Module):
 
     def create_LBP_clf(self, num_inputs: int, num_classes: int) -> None:
         self.classifier = nn.Sequential(
-            nn.Linear(num_inputs, 128),
+            nn.Linear(num_inputs, 512),
+            nn.BatchNorm1d(512),
             nn.ReLU(),
-            nn.Linear(128, 64),
+            nn.Dropout(0.5),
+            nn.Linear(512, 256),
+            nn.BatchNorm1d(256),
             nn.ReLU(),
-            nn.Linear(64, num_classes)
+            nn.Linear(256, 128),
+            nn.BatchNorm1d(128),
+            nn.ReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(128, num_classes)
         )
         self.classifier.to(self.device)
         self.forward = self.forward_simple_classifier

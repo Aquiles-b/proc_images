@@ -22,8 +22,8 @@ def evaluate_model(model: torch.nn.Module, sub_set: str,
 
     return confusion_matrix
 
-def evaluate_clf_LBP(clf: torch.nn.Module, num_classes: int) -> list[list[int]]:
-    test_hist = read_lists_csv(f'{CURRENT_DIR}/data/test_LBP.csv')
+def evaluate_clf_LBP(clf: torch.nn.Module, sub_set: str, num_classes: int) -> list[list[int]]:
+    test_hist = read_lists_csv(f'{CURRENT_DIR}/../data/{sub_set}_LBP.csv')
     test_dataset = LBPDataset(test_hist)
     test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
 

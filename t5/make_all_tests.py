@@ -11,7 +11,7 @@ from eval import evaluate_KNN, evaluate_model, evaluate_clf_LBP
 from torch.utils.data import DataLoader
 
 
-def train_LBP_classifier() -> torch.nn.Module:
+def train_LBP_classifier(num_epochs: int, lr: float) -> torch.nn.Module:
     batch_size = 32
 
     train_hists = read_lists_csv('./data/train_LBP.csv')
@@ -29,7 +29,7 @@ def train_LBP_classifier() -> torch.nn.Module:
     if os.path.exists(path_to_save):
         model.load_model(path_to_save)
     else:
-        model.train_model(train_loader, val_loader, 0.001, 30, path_to_save)
+        model.train_model(train_loader, val_loader, lr, num_epochs, path_to_save)
 
     return model
 
@@ -105,7 +105,7 @@ def get_LBP_metrics(clf: torch.nn.Module) -> tuple[float, float]:
     train_hist = read_lists_csv('./data/train_LBP.csv')
     test_hist = read_lists_csv('./data/test_LBP.csv')
     conf_mtx_knn = evaluate_KNN(train_hist, test_hist, num_classes=9, knn=1)
-    conf_mtx_pred = evaluate_clf_LBP(clf, 9)
+    conf_mtx_pred = evaluate_clf_LBP(clf, 'test', 9)
 
     accuracy_knn = np.trace(conf_mtx_knn) / np.sum(conf_mtx_knn)
     accuracy_pred = np.trace(conf_mtx_pred) / np.sum(conf_mtx_pred)
@@ -124,7 +124,7 @@ def main() -> None:
 
     # Gera os dados LBP 
     create_LBP_csv_data((816, 612))
-    clf = train_LBP_classifier()
+    clf = train_LBP_classifier(100, lr=0.001)
     acc_pred, acc_knn = get_LBP_metrics(clf)
     performance_table.append(['LBP', acc_pred, acc_knn])
 
