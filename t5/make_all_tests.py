@@ -23,7 +23,7 @@ def train_LBP_classifier(num_epochs: int, lr: float) -> torch.nn.Module:
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 
     model = TextureClassifier()
-    model.create_LBP_clf(58, 9)
+    model.create_LBP_clf(63, 9)
 
     path_to_save = './data/texture_clf_LBP.pth'
     if os.path.exists(path_to_save):

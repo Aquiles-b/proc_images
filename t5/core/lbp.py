@@ -10,8 +10,8 @@ def LBP_feature_hist(img: Image.Image, label: int) -> NDArray:
 
     fv = np.array([])
     for i in range(3):
-        lbp = feature.local_binary_pattern(img_a[:,:, i], 8, 3, method='default')
-        hist, _ = np.histogram(lbp.ravel(), bins=np.arange(0, 59), range=(0, 255))
+        lbp = feature.local_binary_pattern(img_a[:,:, i], 8, 3, method='uniform')
+        hist, _ = np.histogram(lbp.ravel(), bins=np.arange(0, 255, 4), range=(0, 255))
         hist = normalize_hist(hist)
         fv = np.concatenate((fv, hist))
     fv = np.append(fv, label)
@@ -22,7 +22,7 @@ def LBP_feature_hist(img: Image.Image, label: int) -> NDArray:
 def LBP_feature_hist_gray(img: Image.Image, label: int) -> NDArray:
     img_a = np.array(img)
     lbp = feature.local_binary_pattern(img_a, 8, 3, method='default')
-    hist, _ = np.histogram(lbp.ravel(), bins=np.arange(0, 59), range=(0, 255))
+    hist, _ = np.histogram(lbp.ravel(), bins=np.arange(0, 255, 4), range=(0, 255))
     hist = normalize_hist(hist)
     fv = np.append(hist, label)
 
