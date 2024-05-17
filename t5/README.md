@@ -1,5 +1,6 @@
 # Dependências
-PyTorch - `pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118`
+PyTorch GPU - `pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118`  
+PyTorch CPU - `pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu`
 
 # Como Rodar
 Primeiramente, é necessário rodar o script get_macroscopic0_dataset.py, que irá baixar
